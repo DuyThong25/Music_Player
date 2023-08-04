@@ -7,11 +7,23 @@ const cdThumb = $(".cd-thumb");
 const audio = $("#audio");
 const currentAudioTime = $(".viewTime-progress");
 const durationAudioTime = $(".viewTime-duration");
-const playBtn = $(".btn-toggle-play");
 const player = $(".player");
 const cd = $(".cd");
 const cdWidth = cd.offsetWidth;
 const header = $(".info header");
+const volumePercent = $('.volume-percent');
+//button volume control
+const volumeDown = $('.volume-down');
+const volumeRange = $('.volume');
+const volumeUp = $('.volume-up');
+//button play control 
+const repeatBtn = $(".btn-repeat");
+const prevBtn = $(".btn-prev");
+const playBtn = $(".btn-toggle-play");
+const nextBtn = $(".btn-next");
+const randomBtn = $(".btn-random");
+
+
 
 // Hàm để định dạng thời gian thành chuỗi phút:giây
 function formatTime(timeInSeconds) {
@@ -20,9 +32,16 @@ function formatTime(timeInSeconds) {
   const formattedTime = `${minutes}:${String(seconds).padStart(2, "0")}`;
   return formattedTime;
 }
+// Hàm xử lý volume 
+function formatVolume(volume) {
+      const newVolume = volume.value;
+      volumePercent.textContent = `Volume ${newVolume}%`
+      audio.volume = newVolume/100;
+}
+
 const app = {
   currentIndex: 0,
-  ifPlaying: false,
+  isPlaying: false,
   songs: [
     {
       name: "Nụ hôn bisou",
@@ -139,6 +158,21 @@ const app = {
       currentAudioTime.textContent = formatTime(audio.currentTime);
       durationAudioTime.textContent = formatTime(audio.duration - audio.currentTime);      
     }
+    //Xử lý sự kiện khi thay đổi volume của bài nhạc
+      //Xử lý sự kiện kéo thanh progress
+    volumeRange.oninput = () => {
+      formatVolume(volumeRange)
+    }
+      //Xử lý sự kiện ấn nút tăng volume
+    volumeUp.onclick = () => {
+        volumeRange.value = audio.volume * 100 + 1;
+        formatVolume(volumeRange)
+    }
+      //Xử lý sự kiện ấn nút giảm volume
+    volumeDown.onclick = () => {
+      volumeRange.value = audio.volume * 100 - 1;
+      formatVolume(volumeRange)
+  }
   },
   defineProperties: function () {
     Object.defineProperty(this, "CurrentSong", {
@@ -156,6 +190,7 @@ const app = {
     audio.addEventListener('loadedmetadata', () => {
       // currentAudioTime.textContent = formatTime(audio.buffered.start(0));
       durationAudioTime.textContent = formatTime(audio.duration);
+      volumePercent.textContent = `Volume ${1.0 * 100}%`
     });
 
   },
@@ -163,10 +198,12 @@ const app = {
     //Định nghĩa các thuộc tính cho Object
     this.defineProperties();
 
-    //handle Event
+    //Xử lý các sự kiện 
     this.handleEvents();
-    //Load current song
+
+    //Tải bài hát đầu tiên lên web
     this.loadCurrentSong();
+
     //Render List
     this.render();
 
