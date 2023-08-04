@@ -58,6 +58,7 @@ html {
 header {
   text-align: center;
   margin-bottom: 10px;
+  margin: auto;
 }
 
 header h4 {
@@ -77,7 +78,7 @@ header h3 {
 
 .cd {
   display: flex;
-  margin: auto;
+  /* margin: auto; */
   width: 200px;
 }
 
