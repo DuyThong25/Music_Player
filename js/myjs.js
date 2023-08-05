@@ -5,25 +5,25 @@ const heading = $("header h2");
 const singer = $("header h3");
 const cdThumb = $(".cd-thumb");
 const audio = $("#audio");
-const currentAudioTime = $(".viewTime-progress");
-const durationAudioTime = $(".viewTime-duration");
 const player = $(".player");
 const cd = $(".cd");
 const cdWidth = cd.offsetWidth;
 const header = $(".info header");
-const volumePercent = $('.volume-percent');
 //button volume control
-const volumeDown = $('.volume-down');
-const volumeRange = $('.volume');
-const volumeUp = $('.volume-up');
-//button play control 
+const volumeDown = $(".volume-down");
+const volumeRange = $(".volume");
+const volumeUp = $(".volume-up");
+const volumePercent = $(".volume-percent");
+//button play control
 const repeatBtn = $(".btn-repeat");
 const prevBtn = $(".btn-prev");
 const playBtn = $(".btn-toggle-play");
 const nextBtn = $(".btn-next");
 const randomBtn = $(".btn-random");
-
-
+//button proress of audio
+const progressAudio = $('#progress');
+const currentAudioTime = $(".viewTime-progress");
+const durationAudioTime = $(".viewTime-duration");
 
 // Hàm để định dạng thời gian thành chuỗi phút:giây
 function formatTime(timeInSeconds) {
@@ -32,11 +32,11 @@ function formatTime(timeInSeconds) {
   const formattedTime = `${minutes}:${String(seconds).padStart(2, "0")}`;
   return formattedTime;
 }
-// Hàm xử lý volume 
+// Hàm xử lý volume
 function formatVolume(volume) {
-      const newVolume = volume.value;
-      volumePercent.textContent = `Volume ${newVolume}%`
-      audio.volume = newVolume/100;
+  const newVolume = volume.value;
+  volumePercent.textContent = `Volume ${newVolume}%`;
+  audio.volume = newVolume / 100;
 }
 
 const app = {
@@ -143,6 +143,10 @@ const app = {
     };
     //Xử lý sự kiện nhấn Play - Pause
     playBtn.onclick = () => {
+      if(progressAudio.value == progressAudio.max) {
+        audio.currentTime = 0;
+        app.isPlaying = false;    
+      }
       if (!app.isPlaying) {
         app.isPlaying = true;
         audio.play();
@@ -152,27 +156,67 @@ const app = {
         audio.pause();
         player.classList.remove("playing");
       }
+      
     };
     //Xử lý sự kiện khi audio đang chạy
     audio.ontimeupdate = () => {
+      //Tính phần trăm hiện tại và truyền vào progress value
+      const newValueProgress = ((audio.currentTime * 100) / audio.duration ) 
+
       currentAudioTime.textContent = formatTime(audio.currentTime);
-      durationAudioTime.textContent = formatTime(audio.duration - audio.currentTime);      
-    }
+      durationAudioTime.textContent = formatTime(
+        audio.duration - audio.currentTime
+      );
+
+      progressAudio.value = newValueProgress
+
+      if(progressAudio.value == progressAudio.max) {
+        app.isPlaying = false;
+        audio.pause();
+        player.classList.remove("playing");
+      }
+    };
+
     //Xử lý sự kiện khi thay đổi volume của bài nhạc
-      //Xử lý sự kiện kéo thanh progress
+    //Xử lý sự kiện kéo thanh progress volume
     volumeRange.oninput = () => {
-      formatVolume(volumeRange)
-    }
-      //Xử lý sự kiện ấn nút tăng volume
+      formatVolume(volumeRange);
+    };
+    //Xử lý sự kiện ấn nút tăng volume
     volumeUp.onclick = () => {
-        volumeRange.value = audio.volume * 100 + 1;
-        formatVolume(volumeRange)
-    }
-      //Xử lý sự kiện ấn nút giảm volume
+      volumeRange.value = audio.volume * 100 + 1;
+      formatVolume(volumeRange);
+    };
+    //Xử lý sự kiện ấn nút giảm volume
     volumeDown.onclick = () => {
       volumeRange.value = audio.volume * 100 - 1;
-      formatVolume(volumeRange)
-  }
+      formatVolume(volumeRange);
+    };
+
+    //Xử lý sự kiện khi thay đổi vị trí của bài nhạc (Thay đổi thanh proress volumn)
+    progressAudio.oninput = () => {
+      //Xác định vị trí của bài nhạc đang ở đâu
+
+      const currentValueProgress = progressAudio.value;
+      const newCurrentTime = (currentValueProgress * audio.duration) / 100;
+      
+      if(currentValueProgress == progressAudio.max) {
+        app.isPlaying = false;
+        audio.pause();
+        player.classList.remove("playing");
+      }else{
+        app.isPlaying = true;
+        audio.play();
+        player.classList.add("playing");
+      }
+      
+      audio.currentTime = newCurrentTime
+      
+      currentAudioTime.textContent = formatTime(newCurrentTime);
+      durationAudioTime.textContent = formatTime(audio.duration - audio.currentTime);
+
+      // console.log([progressAudio]);
+    };
   },
   defineProperties: function () {
     Object.defineProperty(this, "CurrentSong", {
@@ -187,18 +231,18 @@ const app = {
     cdThumb.style.backgroundImage = `url(${this.CurrentSong.image})`;
     audio.src = this.CurrentSong.path;
     // Phải thêm event loadedmetadata để kiểm tra khi nào dữ liệu audio được tải hoàn toàn thì mới thêm vô
-    audio.addEventListener('loadedmetadata', () => {
-      // currentAudioTime.textContent = formatTime(audio.buffered.start(0));
+    audio.addEventListener("loadedmetadata", () => {
       durationAudioTime.textContent = formatTime(audio.duration);
-      volumePercent.textContent = `Volume ${1.0 * 100}%`
-    });
+      volumePercent.textContent = `Volume ${1.0 * 100}%`;
+      progressAudio.value = 0;
 
+    });
   },
   start: function () {
     //Định nghĩa các thuộc tính cho Object
     this.defineProperties();
 
-    //Xử lý các sự kiện 
+    //Xử lý các sự kiện
     this.handleEvents();
 
     //Tải bài hát đầu tiên lên web
@@ -206,7 +250,6 @@ const app = {
 
     //Render List
     this.render();
-
   },
 };
 
