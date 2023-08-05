@@ -9,8 +9,8 @@
     6. Random --> OK
     7. Next / Repeat when ended --> OK
     8. Active song  --> OK
-    9. Scroll active song into view
-    10. Play song when click 
+    9. Scroll active song into view --> OK
+    10. Play song when click --> OK
 */
 
 const $ = document.querySelector.bind(document);
@@ -24,6 +24,7 @@ const player = $(".player");
 const cd = $(".cd");
 const cdWidth = cd.offsetWidth;
 const header = $(".info header");
+const playlist = $(".playlist");
 
 //button volume control
 const volumeDown = $(".volume-down");
@@ -128,7 +129,7 @@ const app = {
   render: function () {
     const htmls = this.songs.map((song, index) => {
       return `
-        <div class="song ${index == this.currentIndex ? "active" : ""}">
+        <div data-index= "${index}" class="song ${index == this.currentIndex ? "active" : ""}">
         <div
           class="thumb"
           style="background-image: url('${song.image}')"
@@ -315,6 +316,27 @@ const app = {
           randomBtn.classList.remove("active"); // Khi isRandom = false mà bấm vào thì set class active vào btn random
         }
       };
+      //Xử lý sự kiện - ấn vào bài hát khác để chuyển sang bài đó
+      playlist.onclick = (e) => {
+
+        const songNode = e.target.closest('.song:not(.active)');
+        const optionNode = e.target.closest('.option');
+
+        if(songNode || optionNode) {
+          //Xử lý sự kiện nhấn vào song node
+          if(songNode) {
+            this.currentIndex = songNode.dataset.index;
+            this.currentVolume = volumeRange.value;
+
+            this.loadCurrentSong();
+            audio.play();
+          }
+          // Xử lý sự kiện nhấn vào option node
+          if(optionNode) {
+            console.log(optionNode);
+          }
+        }
+      }
     });
   },
   nextSong: function () {
@@ -353,7 +375,6 @@ const app = {
   },
   repeatSong: function () {
     this.currentVolume = volumeRange.value;
-
     this.loadCurrentSong();
   },
   defineProperties: function () {
@@ -366,7 +387,7 @@ const app = {
   scrollToActiveSong: function () {
     setTimeout(() => {
       const activeSong = $(".song.active");
-      console.log(activeSong);
+
       activeSong.scrollIntoView({
         behavior : "smooth",
         block: "end"
