@@ -8,7 +8,7 @@
     5. Next / Prev --> OK
     6. Random --> OK
     7. Next / Repeat when ended --> OK
-    8. Active song 
+    8. Active song  --> OK
     9. Scroll active song into view
     10. Play song when click 
 */
@@ -24,6 +24,7 @@ const player = $(".player");
 const cd = $(".cd");
 const cdWidth = cd.offsetWidth;
 const header = $(".info header");
+
 //button volume control
 const volumeDown = $(".volume-down");
 const volumeRange = $(".volume");
@@ -125,9 +126,9 @@ const app = {
   ],
   // 1. Render ra list nhạc -- Render Playlists
   render: function () {
-    const htmls = this.songs.map((song) => {
+    const htmls = this.songs.map((song, index) => {
       return `
-        <div class="song">
+        <div class="song ${index == this.currentIndex ? "active": ""}">
         <div
           class="thumb"
           style="background-image: url('${song.image}')"
@@ -373,6 +374,16 @@ const app = {
       durationAudioTime.textContent = formatTime(audio.duration);
       volumePercent.textContent = `Volume ${this.currentVolume}%`;
 
+      const songElements = $$('.song');
+
+      this.songs.forEach((song,index) => {
+        if(songElements[index].classList.contains('active')) {
+          songElements[index].classList.remove('active')
+        } 
+      })
+
+      songElements[this.currentIndex].classList.add('active')
+      
       progressAudio.value = 0;
     });
   },
@@ -382,12 +393,13 @@ const app = {
 
     //Xử lý các sự kiện
     this.handleEvents();
+    //Render List
+    this.render();
 
     //Tải bài hát đầu tiên lên web
     this.loadCurrentSong();
 
-    //Render List
-    this.render();
+
   },
 };
 
