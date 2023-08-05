@@ -128,7 +128,7 @@ const app = {
   render: function () {
     const htmls = this.songs.map((song, index) => {
       return `
-        <div class="song ${index == this.currentIndex ? "active": ""}">
+        <div class="song ${index == this.currentIndex ? "active" : ""}">
         <div
           class="thumb"
           style="background-image: url('${song.image}')"
@@ -363,27 +363,36 @@ const app = {
       },
     });
   },
+  scrollToActiveSong: function () {
+    setTimeout(() => {
+      const activeSong = $(".song.active");
+      console.log(activeSong);
+      activeSong.scrollIntoView({
+        behavior : "smooth",
+        block: "end"
+      })
+    }, 500);
+  },
   loadCurrentSong: function () {
     heading.textContent = this.CurrentSong.name;
     singer.textContent = this.CurrentSong.singer;
     cdThumb.style.backgroundImage = `url(${this.CurrentSong.image})`;
     audio.src = this.CurrentSong.path;
-    cdThumb.style.transform = "rotate(0deg)";
+    //Scroll to active song element
+    this.scrollToActiveSong();
     // Phải thêm event loadedmetadata để kiểm tra khi nào dữ liệu audio được tải hoàn toàn thì mới thêm vô
     audio.addEventListener("loadedmetadata", () => {
       durationAudioTime.textContent = formatTime(audio.duration);
       volumePercent.textContent = `Volume ${this.currentVolume}%`;
 
-      const songElements = $$('.song');
-
-      this.songs.forEach((song,index) => {
-        if(songElements[index].classList.contains('active')) {
-          songElements[index].classList.remove('active')
-        } 
-      })
-
-      songElements[this.currentIndex].classList.add('active')
-      
+      // Active song
+      const songElements = $$(".song");
+      this.songs.forEach((song, index) => {
+        if (songElements[index].classList.contains("active")) {
+          songElements[index].classList.remove("active");
+        }
+      });
+      songElements[this.currentIndex].classList.add("active");
       progressAudio.value = 0;
     });
   },
@@ -398,8 +407,6 @@ const app = {
 
     //Tải bài hát đầu tiên lên web
     this.loadCurrentSong();
-
-
   },
 };
 
