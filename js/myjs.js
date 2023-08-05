@@ -56,9 +56,11 @@ function formatVolume(volume) {
 
 const app = {
   currentIndex: 0,
+  currentVolume: 50,
   isPlaying: false,
   isRandom: false,
-  isRepeat,
+  isRepeat: false,
+  randomOldSong: [],
   songs: [
     {
       name: "Nụ hôn bisou",
@@ -146,12 +148,12 @@ const app = {
   handleEvents: function () {
     audio.addEventListener("loadedmetadata", () => {
       //Xử lý đĩa CD quay
-      const cdAnimate = cdThumb.animate(
+      let cdAnimate = cdThumb.animate(
         //style
         { transform: "rotate(360deg)" },
         //opttions
         {
-          duration: 30000, // --> 30s thì xong một vòng
+          duration: audio.duration * 1000, // --> 30s thì xong một vòng
           iterations: Infinity, // --> Lập lại bao nhiêu lần
         }
       );
@@ -212,15 +214,19 @@ const app = {
         );
 
         progressAudio.value = newValueProgress;
-        if (progressAudio.value == progressAudio.max) {
-          if(app.isRandom) {
-            app.randomSong();
-          }else{
-            app.nextSong();
-          }
-        }
       };
 
+      //Xử lý sự kiện - khi bài hát kết thúc
+      audio.onended = () => {
+        if (app.isRandom) {
+          app.randomSong();
+        } else if (app.isRepeat) {
+          app.repeatSong();
+        } else {
+          app.nextSong();
+        }
+        audio.play();
+      };
       //Xử lý sự kiện - khi thay đổi volume của bài nhạc
       //Xử lý sự kiện - kéo thanh progress volume
       volumeRange.oninput = () => {
@@ -269,10 +275,10 @@ const app = {
 
       //Xử lý sự kiện - ấn button next sẽ qua bài tiếp theo ( Next song )
       nextBtn.onclick = () => {
-        if(app.isRandom) {
+        cdAnimate.pause();
+        if (app.isRandom) {
           app.randomSong();
-        }
-        else{
+        } else {
           app.nextSong();
         }
         audio.play();
@@ -280,9 +286,9 @@ const app = {
 
       //Xử lý sự kiện - ấn button prev sẽ qua bài trước đó ( Prev song )
       prevBtn.onclick = () => {
-        if(app.isRandom) {
+        if (app.isRandom) {
           app.randomSong();
-        }else{
+        } else {
           app.prevSong();
         }
         audio.play();
@@ -292,6 +298,21 @@ const app = {
       randomBtn.onclick = function () {
         app.isRandom = !app.isRandom;
         randomBtn.classList.toggle("active", app.isRandom); // Khi isRandom = false mà bấm vào thì set class active vào btn random
+        // Nếu repeat đang bật thì tắt
+        if (app.isRepeat) {
+          app.isRepeat = !app.isRepeat;
+          repeatBtn.classList.remove("active"); // Khi isRandom = false mà bấm vào thì set class active vào btn random
+        }
+      };
+      //Xử lý sự kiện - ấn button repeat sẽ phát lại bài hát
+      repeatBtn.onclick = function () {
+        app.isRepeat = !app.isRepeat;
+        repeatBtn.classList.toggle("active", app.isRepeat); // Khi isRandom = false mà bấm vào thì set class active vào btn random
+        // Nếu random đang bật thì tắt
+        if (app.isRandom) {
+          app.isRandom = !app.isRandom;
+          randomBtn.classList.remove("active"); // Khi isRandom = false mà bấm vào thì set class active vào btn random
+        }
       };
     });
   },
@@ -300,6 +321,7 @@ const app = {
     if (this.currentIndex >= this.songs.length) {
       this.currentIndex = 0;
     }
+    this.currentVolume = volumeRange.value;
     this.loadCurrentSong();
   },
   prevSong: function () {
@@ -307,17 +329,30 @@ const app = {
     if (this.currentIndex < 0) {
       this.currentIndex = this.songs.length - 1;
     }
-    console.log(this.currentIndex, this.songs.length);
+    this.currentVolume = volumeRange.value;
     this.loadCurrentSong();
   },
   randomSong: function () {
     let newRandomSong;
+    if (this.randomOldSong.length === this.songs.length) {
+      this.randomOldSong = [];
+    }
     do {
       newRandomSong = Math.floor(Math.random() * this.songs.length);
-    } while (this.currentIndex === newRandomSong );
+    } while (
+      this.randomOldSong.includes(newRandomSong) ||
+      this.currentIndex === newRandomSong
+    );
+
+    this.randomOldSong.push(newRandomSong);
 
     this.currentIndex = newRandomSong;
-    console.log(this.currentIndex);
+    this.currentVolume = volumeRange.value;
+    this.loadCurrentSong();
+  },
+  repeatSong: function () {
+    this.currentVolume = volumeRange.value;
+
     this.loadCurrentSong();
   },
   defineProperties: function () {
@@ -332,11 +367,12 @@ const app = {
     singer.textContent = this.CurrentSong.singer;
     cdThumb.style.backgroundImage = `url(${this.CurrentSong.image})`;
     audio.src = this.CurrentSong.path;
-
+    cdThumb.style.transform = "rotate(0deg)";
     // Phải thêm event loadedmetadata để kiểm tra khi nào dữ liệu audio được tải hoàn toàn thì mới thêm vô
     audio.addEventListener("loadedmetadata", () => {
       durationAudioTime.textContent = formatTime(audio.duration);
-      volumePercent.textContent = `Volume ${50}%`;
+      volumePercent.textContent = `Volume ${this.currentVolume}%`;
+
       progressAudio.value = 0;
     });
   },
