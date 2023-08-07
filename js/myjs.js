@@ -420,7 +420,7 @@ const app = {
         behavior: "smooth",
         block: "end",
       });
-    }, 500);
+    }, 200);
   },
   loadCurrentSong: function () {
     heading.textContent = this.CurrentSong.name;
