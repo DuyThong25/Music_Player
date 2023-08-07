@@ -132,14 +132,14 @@ const app = {
     {
       name: "Anh đến từ đâu?",
       singer: "Mikelodic",
-      path: "./assets/musics/tukinhthanhbacgiang.mp3",
-      image: "./assets/images/tukinhthanhbacgiang.png",
+      path: "./musics/tukinhthanhbacgiang.mp3",
+      image: "./images/tukinhthanhbacgiang.png",
     },
     {
       name: "Anh là ai",
       singer: "Huỳnh Công Hiếu & DT",
-      path: "./assets/musics/anhlaai.mp3",
-      image: "./assets/images/anhlaai.png",
+      path: "./musics/anhlaai.mp3",
+      image: "./images/anhlaai.png",
     },
   ],
   // 1. Render ra list nhạc -- Render Playlists
