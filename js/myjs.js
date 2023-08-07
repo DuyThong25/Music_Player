@@ -16,7 +16,7 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
-const PLAYER_STORAGE_KEY = "F8_PLAYER"
+const PLAYER_STORAGE_KEY = "DUYTHONG_PLAYER";
 
 const heading = $("header h2");
 const singer = $("header h3");
@@ -76,9 +76,9 @@ const app = {
     }
   ),
   config: JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)) || {}, // bỏ cái key vô local nếu k có thì bỏ object trống vô
-  setConfig: function(key, value) {
+  setConfig: function (key, value) {
     this.config[key] = value;
-    localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config))
+    localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config));
   },
   songs: [
     {
@@ -312,10 +312,9 @@ const app = {
         if (app.isRepeat) {
           app.isRepeat = !app.isRepeat;
           repeatBtn.classList.remove("active"); // Khi isRandom = false mà bấm vào thì set class active vào btn random
-          app.setConfig('isRepeat', app.isRepeat);
+          app.setConfig("isRepeat", app.isRepeat);
         }
-        app.setConfig('isRandom', app.isRandom);
-
+        app.setConfig("isRandom", app.isRandom);
       };
       //Xử lý sự kiện - ấn button repeat sẽ phát lại bài hát
       repeatBtn.onclick = function () {
@@ -326,11 +325,9 @@ const app = {
         if (app.isRandom) {
           app.isRandom = !app.isRandom;
           randomBtn.classList.remove("active"); // Khi isRandom = false mà bấm vào thì set class active vào btn random
-          app.setConfig('isRandom', app.isRandom);
-
+          app.setConfig("isRandom", app.isRandom);
         }
-        app.setConfig('isRepeat', app.isRepeat);
-
+        app.setConfig("isRepeat", app.isRepeat);
       };
       //Xử lý sự kiện - ấn vào bài hát khác để chuyển sang bài đó
       playlist.onclick = (e) => {
@@ -342,7 +339,7 @@ const app = {
           if (songNode) {
             this.currentIndex = songNode.dataset.index;
             this.currentVolume = volumeRange.value;
-            app.setConfig('currentIndex', app.currentIndex);
+            app.setConfig("currentIndex", app.currentIndex);
 
             this.loadCurrentSong();
             audio.play();
@@ -401,7 +398,16 @@ const app = {
     });
   },
   //Load cấu hình
-  loadConfig: function() {
+  loadConfig: function () {
+    var arrayOfKeys = Object.keys(localStorage);
+
+    if (!arrayOfKeys.includes(PLAYER_STORAGE_KEY)) {
+      localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config));
+      app.setConfig("isRepeat", app.isRepeat);
+      app.setConfig("isRandom", app.isRandom);
+      app.setConfig("currentIndex", app.currentIndex);
+      console.log(arrayOfKeys);
+    }
     this.isRandom = this.config.isRandom;
     this.isRepeat = this.config.isRepeat;
     this.currentIndex = this.config.currentIndex;
@@ -441,7 +447,6 @@ const app = {
       progressAudio.value = 0;
       randomBtn.classList.toggle("active", app.isRandom); // Khi isRandom = false mà bấm vào thì set class active vào btn random
       repeatBtn.classList.toggle("active", app.isRepeat); // Khi isRandom = false mà bấm vào thì set class active vào btn random
-
     });
   },
   start: function () {
@@ -455,10 +460,10 @@ const app = {
     this.handleEvents();
     //Render List
     this.render();
-
     //Tải bài hát đầu tiên lên web
     this.loadCurrentSong();
 
+    // localStorage.removeItem(PLAYER_STORAGE_KEY);
   },
 };
 
